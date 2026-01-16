@@ -13,7 +13,16 @@ func main() {
 		log.Fatalf("Error loading config: %v", err)
 	}
 	fmt.Printf("Loaded %d backends:\n", len(pool.Backends))
-	for i, backend := range pool.Backends {
-		fmt.Printf("  %d: %s (Alive: %v)\n", i+1, backend.URL, backend.Alive)
-	}
+
+	//test Round Robin logic 
+	for i:=0;i<10;i++{
+		backend:=pool.GetNextValidPeer()
+		if backend!=nil{
+			fmt.Printf("Request %d -> %s\n",i+1,backend.URL)
+		}else{
+            fmt.Printf("Request %d -> No backends available\n", i+1)
+
+		}
+	}	
+
 }
