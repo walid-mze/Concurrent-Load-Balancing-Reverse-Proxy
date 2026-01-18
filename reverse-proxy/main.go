@@ -2,9 +2,11 @@ package main
 
 import (
 	"ReverseProxy/config"
+	"ReverseProxy/healthCheker"
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 )
 
 func main() {
@@ -19,7 +21,11 @@ func main() {
 		ServerPool: pool,
 	}
 
+	//test the health cheker function 
+	cheker.StartHealthCheck(pool,5*time.Second)
+
 	fmt.Println("starting proxy server on 8080: ")
 	http.ListenAndServe(":8080", proxyHandler)
+
 
 }
