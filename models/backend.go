@@ -11,3 +11,11 @@ type Backend struct {
 	CurrentConnections int      `json:"current_connections"`
 	Mux                sync.RWMutex
 }
+func (b *Backend) IncrementConns(){
+	b.CurrentConnections++
+}
+
+func (b *Backend) DecrementConns(){
+	b.CurrentConnections--
+}
+
