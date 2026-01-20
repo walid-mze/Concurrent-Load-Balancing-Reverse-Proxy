@@ -9,7 +9,7 @@ import (
 	"ReverseProxy/models"
 )
 
-func LoadConfig(filename string) (*models.ServerPool, error) {
+func LoadBackends(filename string) (*models.ServerPool, error) {
 
 	data, err := os.ReadFile(filename)
 	if err != nil {
@@ -39,4 +39,20 @@ func LoadConfig(filename string) (*models.ServerPool, error) {
 		pool.AddBackend(backend)
 	}
 	return pool, nil
+}
+
+func LoadProxyConfig(filename string) (*models.ProxyConfig,error){
+	data,err:=os.ReadFile(filename)
+	if err!=nil{
+		return nil,err
+
+	}
+	var config models.ProxyConfig
+	err=json.Unmarshal(data,&config)
+	if err!=nil{
+		return nil,err
+	}
+
+	return &config,nil
+
 }

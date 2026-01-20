@@ -2,7 +2,7 @@ package main
 
 import (
 	"ReverseProxy/config"
-	"ReverseProxy/healthCheker"
+	cheker "ReverseProxy/healthCheker"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,7 +11,7 @@ import (
 
 func main() {
 	//load backends
-	pool, err := config.LoadConfig("reverse-proxy/config.json")
+	pool, err := config.LoadBackends("reverse-proxy/config.json")
 	if err != nil {
 		log.Fatalf("Error loading config: %v", err)
 	}
@@ -21,11 +21,22 @@ func main() {
 		ServerPool: pool,
 	}
 
-	//test the health cheker function 
-	cheker.StartHealthCheck(pool,5*time.Second)
+	//test the health cheker function
 
-	fmt.Println("starting proxy server on 8080: ")
-	http.ListenAndServe(":8080", proxyHandler)
+	proxyConfig, err := config.LoadProxyConfig("reverse-proxy/proxyConfig.json")
+	if err != nil {
+		log.Fatalf("Error loading proxy config: %v", err)
+	}
 
+	healthCheckFreq, err := time.ParseDuration(proxyConfig.HealthChekerFreq)
+	if err != nil {
+		log.Fatalf("Error parsing health check frequency: %v", err)
+	}
+
+	cheker.StartHealthCheck(pool, healthCheckFreq)
+	addr := fmt.Sprintf(":%d", proxyConfig.Port)
+
+	fmt.Printf("starting proxy server on %s\n", addr)
+	http.ListenAndServe(addr, proxyHandler)
 
 }

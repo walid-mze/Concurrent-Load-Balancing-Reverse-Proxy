@@ -6,47 +6,49 @@ import (
 	"net/http"
 	"time"
 )
-func StartHealthCheck(pool *models.ServerPool, interval time.Duration ){
-    ticker := time.NewTicker(interval)
-    
-    go func() {
-        for range ticker.C {
-            checkBackends(pool)
-        }
-    }()
+
+func StartHealthCheck(pool *models.ServerPool, interval time.Duration) {
+	// Exécuter immédiatement la première vérification
+	checkBackends(pool)
+
+	ticker := time.NewTicker(interval)
+
+	go func() {
+		for range ticker.C {
+			checkBackends(pool)
+		}
+	}()
 
 }
 
-func checkBackends(pool *models.ServerPool){
+func checkBackends(pool *models.ServerPool) {
 
-	for _,backend:=range pool.Backends{
+	for _, backend := range pool.Backends {
 
-		alive:=isAlive(backend)
+		alive := isAlive(backend)
 		backend.Mux.Lock()
-		wasAlive:=backend.Alive
+		wasAlive := backend.Alive
 		backend.Mux.Unlock()
 
-		pool.SetBackendStatus(backend.URL,alive)
-		if alive && !wasAlive{
+		pool.SetBackendStatus(backend.URL, alive)
+		if alive && !wasAlive {
 			log.Printf("Backend %s is UP", backend.URL)
-		}else if wasAlive && !alive{
+		} else if wasAlive && !alive {
 			log.Printf("Backend %s is DOWN", backend.URL)
 		}
 	}
 
-
-	
 }
-func isAlive(backend *models.Backend) bool{	
-	client :=http.Client{
-		Timeout: 2*time.Second,
+func isAlive(backend *models.Backend) bool {
+	client := http.Client{
+		Timeout: 2 * time.Second,
 	}
-	resp,err:=client.Get(backend.URL.String())
-	if err!=nil{
+	resp, err := client.Get(backend.URL.String())
+	if err != nil {
 		return false
 	}
 	defer resp.Body.Close()
-	if  resp.StatusCode < 500{
+	if resp.StatusCode < 500 {
 		return true
 	}
 	return false
