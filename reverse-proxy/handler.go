@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httputil"
+	"time"
 )
 
 type ProxyHandler struct {
@@ -21,8 +22,9 @@ func (p *ProxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	backend.IncrementConns()
 	defer backend.DecrementConns()
+	time.Sleep(5 * time.Second)
+
 	log.Printf("Forwarding request to %s", backend.URL)
 	reverseProxy := httputil.NewSingleHostReverseProxy(backend.URL)
 	reverseProxy.ServeHTTP(w, r)
-
 }

@@ -15,16 +15,15 @@ func (s *ServerPool) AddBackend(b *Backend) {
 
 func (s *ServerPool) GetNextValidPeer() *Backend{
 	l:=len(s.Backends)
-
 	s.Mux.Lock()
 	next:=s.Current
 	s.Current++
 	s.Mux.Unlock()
-
 	for i:=0;i<l;i++{
 		idx:=int(next+uint64(i))%l
 		s.Backends[idx].Mux.RLock()
 		alive:=s.Backends[idx].Alive
+
 		s.Backends[idx].Mux.RUnlock()
 
 		if alive{
@@ -44,5 +43,15 @@ func (s *ServerPool)SetBackendStatus(uri *url.URL, alive bool){
 			return 
 		}
 	}
+}
 
+func (s *ServerPool) DeleteBackend(backend *Backend){
+	s.Mux.Lock()
+    defer s.Mux.Unlock()
+	for i:=range s.Backends{
+		if s.Backends[i].URL.String()==backend.URL.String(){
+            s.Backends = append(s.Backends[:i], s.Backends[i+1:]...)
+			break
+		}
+	}
 }
