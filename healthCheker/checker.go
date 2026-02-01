@@ -43,9 +43,17 @@ func isAlive(backend *models.Backend) bool {
 	client := http.Client{
 		Timeout: 2 * time.Second,
 	}
-	resp, err := client.Get(backend.URL.String())
+	// Check /health for health status
+	/*this check is used for slow  backends that may take time to respond ,
+	and it it used to test the cancellation of the slow backends requests*/
+	healthURL := backend.URL.String() + "/health"
+	resp, err := client.Get(healthURL)
 	if err != nil {
-		return false
+		// Fallback to root if /health doesn't exist
+		resp, err = client.Get(backend.URL.String())
+		if err != nil {
+			return false
+		}
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < 500 {

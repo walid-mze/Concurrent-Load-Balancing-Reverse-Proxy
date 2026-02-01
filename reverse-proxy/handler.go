@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"time"
+	"context"
 )
 
 type ProxyHandler struct {
@@ -24,7 +25,22 @@ func (p *ProxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer backend.DecrementConns()
 	time.Sleep(5 * time.Second)
 
+
+
+	//creating context with timeout
+	ctx,cancel:=context.WithTimeout(r.Context(),30*time.Second)
+	defer cancel()
+	r=r.WithContext(ctx)
+
+
 	log.Printf("Forwarding request to %s", backend.URL)
 	reverseProxy := httputil.NewSingleHostReverseProxy(backend.URL)
+
+
+	reverseProxy.ErrorHandler=func(w http.ResponseWriter,r *http.Request, err error){
+		log.Printf("Backend %s error:%v",backend.URL,err)
+		p.ServerPool.SetBackendStatus(backend.URL,false)
+		http.Error(w,"Bad Gateway",http.StatusBadGateway)
+	}
 	reverseProxy.ServeHTTP(w, r)
 }
