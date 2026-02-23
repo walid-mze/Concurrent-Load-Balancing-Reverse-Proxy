@@ -3,7 +3,7 @@ package main
 import (
 	"ReverseProxy/admin"
 	"ReverseProxy/config"
-	cheker "ReverseProxy/healthCheker"
+	 "ReverseProxy/healthCheker"
 	"context"
 	"fmt"
 	"log"
@@ -41,7 +41,7 @@ func main() {
 	cheker.StartHealthCheck(pool, healthCheckFreq)
 	addr := fmt.Sprintf(":%d", proxyConfig.Port)
 
-	// Create proxy server with http.Server for graceful shutdown
+	// Create proxy server with http.Server 
 	proxyServer := &http.Server{
 		Addr:    addr,
 		Handler: proxyHandler,
@@ -74,7 +74,7 @@ func main() {
 		}
 	})
 
-	// Create admin server with http.Server for graceful shutdown
+	// Create admin server with http.Server 
 	adminServer := &http.Server{
 		Addr:    ":8081",
 		Handler: adminMux,
@@ -111,19 +111,6 @@ func main() {
 	}
 	fmt.Println("All servers stopped!")
 
-	/*issues in the code :
-	1. when i add a backend from the admin api the round robin does not work correctly :
-		2026/01/21 22:02:38 Forwarding request to http://localhost:8082
-		2026/01/21 22:02:39 Forwarding request to http://localhost:8083
-		2026/01/21 22:02:48 Forwarding request to http://localhost:8085
-		2026/01/21 22:02:52 Forwarding request to http://localhost:8085
 
-	==> solved
-
-	2.the http://localhost:8081/status have always the curConn=0 for all backend
-
-	3.the delete func is not working :
-	==> solved
-	*/
 
 }
